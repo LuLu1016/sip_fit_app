@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// Import the theme
-import 'core/constants/app_theme.dart';
-import 'core/constants/app_colors.dart';
-import 'presentation/pages/login_page.dart';
-import 'presentation/pages/dashboard_page.dart';
-import 'presentation/pages/rewards_page.dart';
-import 'presentation/pages/onboarding_survey_page.dart';
-import 'presentation/providers/auth_provider.dart';
-import 'presentation/providers/user_profile_provider.dart';
+import 'package:sip_fit/core/constants/app_colors.dart';
+import 'package:sip_fit/core/constants/app_icons.dart';
+import 'package:sip_fit/presentation/pages/dashboard_page.dart';
+import 'package:sip_fit/presentation/pages/bars_list_page.dart';
+import 'package:sip_fit/presentation/pages/my_sippy_page.dart';
+import 'package:sip_fit/presentation/pages/fitness_drink_survey_page.dart';
+import 'package:sip_fit/presentation/pages/survey_results_page.dart';
+import 'package:sip_fit/presentation/pages/onboarding/splash_page.dart';
+import 'package:sip_fit/presentation/pages/onboarding/start_page.dart';
+import 'package:sip_fit/presentation/pages/onboarding/habits_page.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -20,34 +25,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sip Fit',
-      theme: AppTheme.lightTheme,
-      home: const MainNavigationWrapper(),
-      debugShowCheckedModeBanner: false,
+      title: 'SipFit',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.primaryPurple,
+          secondary: AppColors.primaryPink,
+        ),
+      ),
+      initialRoute: '/splash',
+      routes: {
+        '/splash': (context) => const SplashPage(),
+        '/start': (context) => const StartPage(),
+        '/habits': (context) => const HabitsPage(),
+        '/': (context) => const MainTabNavigation(),
+        '/survey': (context) => const FitnessDrinkSurveyPage(),
+        '/survey_results': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return SurveyResultsPage(responses: args);
+        },
+      },
     );
-  }
-}
-
-class MainNavigationWrapper extends ConsumerWidget {
-  const MainNavigationWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authNotifierProvider);
-    final userProfileAsync = ref.watch(userProfileProvider);
-    
-    // Show login if not authenticated
-    if (authState.user == null) {
-      return const LoginPage();
-    }
-    
-    // Show onboarding survey if user doesn't have a profile yet
-    if (userProfileAsync.value == null) {
-      return const OnboardingSurveyPage();
-    }
-    
-    // Show main app if user has completed onboarding
-    return const MainTabNavigation();
   }
 }
 
@@ -63,7 +61,8 @@ class _MainTabNavigationState extends ConsumerState<MainTabNavigation> {
 
   static final List<Widget> _pages = [
     const DashboardPage(),
-    const RewardsPage(),
+    const BarsListPage(),
+    const MySippyPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -75,23 +74,41 @@ class _MainTabNavigationState extends ConsumerState<MainTabNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.card_giftcard),
-            label: 'Rewards',
-          ),
-        ],
-        backgroundColor: AppColors.primaryNavy,
-        selectedItemColor: AppColors.accentGreen,
-        unselectedItemColor: AppColors.textLight,
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowColor.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(AppIcons.wine),
+              label: 'My Drinks',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(AppIcons.gift),
+              label: 'Points',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(AppIcons.sparkles),
+              label: 'My Sippy',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          selectedItemColor: AppColors.primaryPurple,
+          unselectedItemColor: AppColors.textLight,
+          showUnselectedLabels: true,
+        ),
       ),
     );
   }

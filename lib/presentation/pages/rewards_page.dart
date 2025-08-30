@@ -116,47 +116,145 @@ class RewardsPage extends ConsumerWidget {
   Widget _buildPointsAvailable(WidgetRef ref, AsyncValue<int> totalPointsAsync) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.warningOrange,
-            borderRadius: BorderRadius.circular(25),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primaryPurple, AppColors.accentPurple],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.flash_on,
-                color: AppColors.primaryWhite,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              totalPointsAsync.when(
-                loading: () => const Text(
-                  'Loading...',
-                  style: TextStyle(
-                    color: AppColors.primaryWhite,
-                    fontWeight: FontWeight.bold,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowColor.withOpacity(0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Current Points
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Current Points',
+                      style: TextStyle(
+                        color: AppColors.primaryWhite.withOpacity(0.8),
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    totalPointsAsync.when(
+                      loading: () => const Text(
+                        'Loading...',
+                        style: TextStyle(
+                          color: AppColors.primaryWhite,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      error: (error, stack) => Text(
+                        'Error: $error',
+                        style: const TextStyle(
+                          color: AppColors.primaryWhite,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      data: (points) => Row(
+                        children: [
+                          Icon(
+                            Icons.flash_on,
+                            color: AppColors.primaryWhite,
+                            size: 32,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            points.toString(),
+                            style: const TextStyle(
+                              color: AppColors.primaryWhite,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentGreen.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.local_bar,
+                        color: AppColors.primaryWhite,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '250 to next drink',
+                        style: TextStyle(
+                          color: AppColors.primaryWhite,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                error: (error, stack) => Text(
-                  'Error: $error',
-                  style: const TextStyle(
-                    color: AppColors.primaryWhite,
-                    fontWeight: FontWeight.bold,
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Progress Bar
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Progress to next reward',
+                      style: TextStyle(
+                        color: AppColors.primaryWhite.withOpacity(0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      '75%',
+                      style: TextStyle(
+                        color: AppColors.primaryWhite,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: 0.75,
+                    backgroundColor: AppColors.primaryWhite.withOpacity(0.2),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentGreen),
+                    minHeight: 8,
                   ),
                 ),
-                data: (points) => Text(
-                  '$points points available',
-                  style: const TextStyle(
-                    color: AppColors.primaryWhite,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );

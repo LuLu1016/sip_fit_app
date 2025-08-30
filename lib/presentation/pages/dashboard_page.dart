@@ -1,41 +1,99 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sip_fit/core/constants/app_colors.dart';
-import 'package:sip_fit/data/models/user_profile_model.dart';
-import 'package:sip_fit/presentation/providers/health_provider.dart';
-import 'package:sip_fit/presentation/providers/user_profile_provider.dart';
-import 'package:sip_fit/core/widgets/activity_list_item.dart';
+import 'package:sip_fit/core/constants/app_icons.dart';
+import 'package:sip_fit/core/widgets/gradient_container.dart';
+import 'package:sip_fit/core/widgets/drink_glass_indicator.dart';
+import 'package:sip_fit/core/widgets/dumbbell_indicator.dart';
+import 'package:sip_fit/core/widgets/workout_record_card.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
-class DashboardPage extends ConsumerWidget {
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final activitiesAsync = ref.watch(healthProvider);
-    final userProfileAsync = ref.watch(userProfileProvider);
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
+}
 
+class _DashboardPageState extends ConsumerState<DashboardPage> {
+  final TextEditingController _drinkInputController = TextEditingController();
+  bool _showDrinkInput = false;
+
+  // Mock data - Replace with actual providers
+  final List<String> dailyGoals = [
+    "Today's mission: Fuel your body with intention and crush every rep! 💪",
+    "Let's make today legendary - every sip and every step counts! 🚀",
+    "Your future self will thank you for the choices you make today! ✨",
+    "Today is your canvas - paint it with sweat, hydration, and victory! 🎨",
+  ];
+
+  final Map<String, dynamic> userStats = {
+    'drinkAllowance': 850,
+    'drinkConsumed': 320,
+    'workoutCalories': 280,
+    'points': 1250,
+  };
+
+  final List<Map<String, dynamic>> workoutHistory = [
+    {
+      'type': 'Morning Run',
+      'duration': '45 min',
+      'calories': 320,
+      'points': 150,
+      'time': DateTime.now().subtract(const Duration(hours: 3)),
+    },
+    {
+      'type': 'Strength Training',
+      'duration': '30 min',
+      'calories': 180,
+      'points': 100,
+      'time': DateTime.now().subtract(const Duration(hours: 5)),
+    },
+    {
+      'type': 'Yoga',
+      'duration': '20 min',
+      'calories': 80,
+      'points': 50,
+      'time': DateTime.now().subtract(const Duration(hours: 8)),
+    },
+  ];
+
+  @override
+  void dispose() {
+    _drinkInputController.dispose();
+    super.dispose();
+  }
+
+  String get todaysGoal {
+    final dayOfWeek = DateTime.now().weekday;
+    return dailyGoals[dayOfWeek % dailyGoals.length];
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              // Header with logo and title
-              _buildHeader(context),
+              // Header
+              _buildHeader(),
               
-              // Apple HealthKit Card
-              _buildHealthKitCard(),
+              // Daily Goal
+              _buildDailyGoal(),
               
-              // Cheers Points Card
-              _buildCheersPointsCard(ref),
+              // Stats Grid
+              _buildStatsGrid(),
               
-              // Drink Allowance Card
-              _buildDrinkAllowanceCard(ref, userProfileAsync),
+              // Drink Input
+              if (_showDrinkInput) _buildDrinkInput(),
               
-              // Recent Activities
-              _buildRecentActivities(context, activitiesAsync),
+              // Quick Add Button
+              if (!_showDrinkInput) _buildQuickAddButton(),
               
+              _buildWorkoutHistory(),
               const SizedBox(height: 100), // Space for bottom navigation
             ],
           ),
@@ -44,443 +102,359 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(24),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // App Logo
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: AppColors.textDark,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.flash_on,
-              color: AppColors.primaryWhite,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // App Title
-          Text(
-            'Fit & Sip',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHealthKitCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.primaryGreen,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
+          Row(
             children: [
-              // HealthKit Icon
               Container(
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.backgroundCard,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.phone_android,
-                  color: AppColors.accentGreen,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // HealthKit Text
-              const Text(
-                'Apple HealthKit',
-                style: TextStyle(
-                  color: AppColors.textDark,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              // Sync Status
-              Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: AppColors.accentGreen,
-                    size: 20,
+                  gradient: LinearGradient(
+                    colors: AppColors.purpleToPinkGradient,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Synced',
-                    style: TextStyle(
-                      color: AppColors.accentGreen,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCheersPointsCard(WidgetRef ref) {
-    final totalPointsAsync = ref.watch(totalPointsProvider);
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.primaryPurple,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  const Icon(
-                    Icons.flash_on,
-                    color: AppColors.primaryWhite,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Cheers Points',
-                    style: TextStyle(
-                      color: AppColors.primaryWhite,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              
-              // Points Display
-              totalPointsAsync.when(
-                loading: () => const CircularProgressIndicator(color: AppColors.primaryWhite),
-                error: (error, stack) => Text(
-                  'Error: $error',
-                  style: const TextStyle(color: AppColors.primaryWhite),
-                ),
-                data: (points) => Text(
-                  points.toString(),
-                  style: const TextStyle(
-                    color: AppColors.primaryWhite,
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Points Breakdown
-              const Text(
-                '🚶 10,000 steps = 50 points | 💪 1 workout = 25 points',
-                style: TextStyle(
-                  color: AppColors.primaryWhite,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrinkAllowanceCard(WidgetRef ref, AsyncValue<UserProfileModel?> userProfileAsync) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.backgroundCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.warningOrange, width: 2),
-          ),
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Icon(
-                    Icons.local_fire_department,
-                    color: AppColors.warningOrange,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Drink Allowance',
-                    style: TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              
-              // Wine Glass Visualization
-              Center(
-                child: Column(
-                  children: [
-                    // Wine Glass
-                    Container(
-                      width: 80,
-                      height: 100,
-                      child: Stack(
-                        children: [
-                          // Glass outline
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              height: 80,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.textMedium, width: 2),
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(40),
-                                  bottomRight: Radius.circular(40),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Wine liquid (17% fill)
-                          Positioned(
-                            bottom: 0,
-                            left: 2,
-                            right: 2,
-                            child: Container(
-                              height: 13.6, // 17% of 80
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryPurple,
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(38),
-                                  bottomRight: Radius.circular(38),
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Glass stem
-                          Positioned(
-                            bottom: 0,
-                            left: 50,
-                            child: Container(
-                              width: 4,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryPurple,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                          // Glass base
-                          Positioned(
-                            bottom: 0,
-                            left: 45,
-                            child: Container(
-                              width: 14,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: AppColors.primaryPurple,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Calorie Display
-                    Text(
-                      '168 / 1000 cal',
-                      style: TextStyle(
-                        color: AppColors.primaryPurple,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '17% of limit',
-                      style: TextStyle(
-                        color: AppColors.textMedium,
-                        fontSize: 14,
-                      ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadowColor.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
+                child: Icon(
+                  AppIcons.sparkles,
+                  color: AppColors.textWhite,
+                  size: 24,
+                ),
               ),
-              
-              const SizedBox(height: 24),
-              
-              // Progress Indicators
-              Row(
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Calorie Progress
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: CircularProgressIndicator(
-                                value: 0.17,
-                                strokeWidth: 6,
-                                backgroundColor: AppColors.borderColor,
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.warningOrange),
-                              ),
-                            ),
-                            Text(
-                              '17%',
-                              style: TextStyle(
-                                color: AppColors.warningOrange,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '17%',
-                          style: TextStyle(
-                            color: AppColors.warningOrange,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Calorie Progress',
-                          style: TextStyle(
-                            color: AppColors.warningOrange,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    'FitDrink',
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
-                  
-                  // Cups Progress
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: CircularProgressIndicator(
-                                value: 1.0,
-                                strokeWidth: 6,
-                                backgroundColor: AppColors.borderColor,
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.textDark),
-                              ),
-                            ),
-                            Text(
-                              '100%',
-                              style: TextStyle(
-                                color: AppColors.textDark,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '100%',
-                          style: TextStyle(
-                            color: AppColors.textDark,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Cups (300ml)',
-                          style: TextStyle(
-                            color: AppColors.textDark,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    'Hey Alex! 👋',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentActivities(BuildContext context, AsyncValue<List<dynamic>> activitiesAsync) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Recent Activities',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.textDark,
-              fontWeight: FontWeight.bold,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundCard,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadowColor.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          
-          activitiesAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Text('Error: $error'),
-            data: (activities) => Column(
-              children: activities
-                  .take(3) // Show only 3 recent activities
-                  .map((activity) => ActivityListItem(activity: activity))
-                  .toList(),
+            child: Row(
+              children: [
+                Icon(
+                  AppIcons.gift,
+                  color: AppColors.primaryPurple,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${userStats['points']} pts',
+                  style: TextStyle(
+                    color: AppColors.primaryPurple,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: const Duration(milliseconds: 600));
+  }
+
+  Widget _buildDailyGoal() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: GradientContainer(
+        colors: AppColors.purpleToOrangeGradient,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  AppIcons.target,
+                  color: AppColors.textWhite,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Today's Mission",
+                  style: TextStyle(
+                    color: AppColors.textWhite,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            AnimatedTextKit(
+              animatedTexts: [
+                TypewriterAnimatedText(
+                  todaysGoal,
+                  textStyle: TextStyle(
+                    color: AppColors.textWhite,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    height: 1.5,
+                  ),
+                  speed: const Duration(milliseconds: 50),
+                ),
+              ],
+              totalRepeatCount: 1,
+              displayFullTextOnTap: true,
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: const Duration(milliseconds: 600)).slideY(begin: -0.2, end: 0);
+  }
+
+  Widget _buildStatsGrid() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundCard,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowColor.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Drink Budget',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Icon(
+                        AppIcons.wine,
+                        color: AppColors.primaryPink,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DrinkGlassIndicator(
+                    consumed: userStats['drinkConsumed'].toDouble(),
+                    total: userStats['drinkAllowance'].toDouble(),
+                    label: 'calories',
+                    unit: 'left',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.backgroundCard,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowColor.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Burned Today',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Icon(
+                        AppIcons.dumbbell,
+                        color: AppColors.primaryBlue,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DumbbellIndicator(
+                    calories: userStats['workoutCalories'],
+                    label: 'calories',
+                    unit: 'burned',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: const Duration(milliseconds: 600)).slideY(begin: 0.2, end: 0);
+  }
+
+  Widget _buildWorkoutHistory() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Today\'s Workouts',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          ...workoutHistory.map(
+            (workout) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: WorkoutRecordCard(
+                type: workout['type'],
+                duration: workout['duration'],
+                calories: workout['calories'],
+                points: workout['points'],
+                time: workout['time'],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate()
+      .fadeIn(duration: const Duration(milliseconds: 600))
+      .slideY(begin: 0.2, end: 0);
+  }
+
+  Widget _buildQuickAddButton() {
+    return Center(
+      child: TextButton.icon(
+        onPressed: () {
+          setState(() {
+            _showDrinkInput = true;
+          });
+        },
+        icon: Icon(
+          AppIcons.plus,
+          color: AppColors.primaryPurple,
+        ),
+        label: Text(
+          'Log a drink',
+          style: TextStyle(
+            color: AppColors.primaryPurple,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: const Duration(milliseconds: 300));
+  }
+
+  Widget _buildDrinkInput() {
+    return Container(
+      margin: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundCard,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowColor.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                AppIcons.plus,
+                color: AppColors.successGreen,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'What did you drink today?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _drinkInputController,
+                  decoration: InputDecoration(
+                    hintText: 'e.g., I drank 300ml mojito',
+                    prefixIcon: Icon(
+                      AppIcons.wine,
+                      color: AppColors.primaryPurple,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () {
+                  // TODO: Handle drink logging
+                  setState(() {
+                    _showDrinkInput = false;
+                  });
+                  _drinkInputController.clear();
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: AppColors.successGreen,
+                ),
+                child: Icon(
+                  AppIcons.send,
+                  color: AppColors.textWhite,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate()
+      .fadeIn(duration: const Duration(milliseconds: 300))
+      .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
   }
 }

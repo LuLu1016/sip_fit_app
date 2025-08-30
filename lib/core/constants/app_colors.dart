@@ -1,34 +1,78 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary Palette - Inspired by modern app design
-  static const Color primaryGreen = Color(0xFFD8DCDF); // Light pastel green
-  static const Color primaryPurple = Color(0xFF9B6B9E); // Medium purple
-  static const Color primaryPink = Color(0xFFE8B4CB); // Light pastel pink
-  static const Color primaryNavy = Color(0xFF1A1A2E); // Dark navy blue
-  static const Color primaryWhite = Color(0xFFFFFFFF); // Pure white
+  // Primary Colors
+  static const primaryPurple = Color(0xFF8B5CF6);
+  static const primaryPink = Color(0xFFEC4899);
+  static const primaryOrange = Color(0xFFF97316);
+  static const primaryGreen = Color(0xFF4ECDC4);
+  static const primaryBlue = Color(0xFF45B7D1);
 
   // Accent Colors
-  static const Color accentGreen = Color(0xFF4CAF50); // Vibrant green for success/actions
-  static const Color accentPurple = Color(0xFF7B1FA2); // Deeper purple for emphasis
-  static const Color accentRed = Color(0xFFE57373); // Soft red for warnings/negative
-
-  // Text Colors
-  static const Color textDark = Color(0xFF1A1A2E); // Dark navy for primary text
-  static const Color textMedium = Color(0xFF424242); // Medium gray for secondary text
-  static const Color textLight = Color(0xFF757575); // Light gray for tertiary text
+  static const accentPurple = Color(0xFFA78BFA);
+  static const accentPink = Color(0xFFF472B6);
+  static const accentOrange = Color(0xFFFB923C);
+  static const accentGreen = Color(0xFF96CEB4);
+  static const accentYellow = Color(0xFFFBBF24);
 
   // Background Colors
-  static const Color backgroundLight = Color(0xFFFAFAFA); // Very light gray
-  static const Color backgroundCard = Color(0xFFFFFFFF); // White for cards
-  static const Color backgroundOverlay = Color(0xFFF5F5F5); // Light overlay
+  static const backgroundLight = Color(0xFFFFF5F5);
+  static const backgroundCard = Color(0xFFFFFFFF);
+  static const backgroundGradientStart = Color(0xFFFFF1F2);
+  static const backgroundGradientMiddle = Color(0xFFFFF7ED);
+  static const backgroundGradientEnd = Color(0xFFFEF9C3);
+
+  // Text Colors
+  static const textDark = Color(0xFF1F2937);
+  static const textMedium = Color(0xFF6B7280);
+  static const textLight = Color(0xFF9CA3AF);
+  static const textWhite = Color(0xFFFFFFFF);
 
   // Status Colors
-  static const Color successGreen = Color(0xFF4CAF50); // Success green
-  static const Color warningOrange = Color(0xFFFF9800); // Warning orange
-  static const Color errorRed = Color(0xFFF44336); // Error red
+  static const successGreen = Color(0xFF34D399);
+  static const warningOrange = Color(0xFFFBBF24);
+  static const errorRed = Color(0xFFEF4444);
 
-  // Other
-  static const Color shadowColor = Color(0x1A000000); // Very transparent black for subtle shadows
-  static const Color borderColor = Color(0xFFE0E0E0); // Light border color
+  // Border and Shadow Colors
+  static const borderColor = Color(0xFFE5E7EB);
+  static const shadowColor = Color(0xFF000000);
+
+  // Navigation Colors
+  static const primaryNavy = Color(0xFF1F2937);
+  static const navSelected = primaryPurple;
+  static const navUnselected = textLight;
+
+  // Utility Colors
+  static const primaryWhite = Color(0xFFFFFFFF);
+  static const primaryBlack = Color(0xFF000000);
+  static const transparent = Color(0x00000000);
+
+  // Gradient Colors
+  static List<Color> purpleToOrangeGradient = [
+    primaryPurple,
+    primaryPink,
+    primaryOrange,
+  ];
+
+  static List<Color> purpleToPinkGradient = [
+    primaryPurple,
+    primaryPink,
+  ];
+
+  static List<Color> greenToTealGradient = [
+    primaryGreen,
+    accentGreen,
+  ];
+
+  static List<Color> blueToIndigoGradient = [
+    primaryBlue,
+    primaryPurple,
+  ];
+
+  // Background Gradient
+  static List<Color> backgroundGradient = [
+    backgroundGradientStart,
+    backgroundGradientMiddle,
+    backgroundGradientEnd,
+  ];
 }
