@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sip_fit/core/constants/app_colors.dart';
 import 'package:sip_fit/core/constants/app_icons.dart';
+import 'package:sip_fit/core/widgets/gradient_container.dart';
+import 'package:sip_fit/core/widgets/elegant_icon.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:math' as math;
 
 class BarDetailPage extends ConsumerWidget {
   final Map<String, dynamic> bar;
@@ -14,157 +17,198 @@ class BarDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final redeemableItems = [
+    final coupons = [
       {
-        'name': bar['signature'],
-        'description': 'Signature cocktail crafted with premium spirits',
-        'points': 400,
-        'type': 'drink',
+        'title': bar['signature'],
+        'description': 'Signature cocktail + appetizer combo',
+        'points': bar['points'],
+        'validUntil': DateTime.now().add(const Duration(days: 30)),
+        'isAvailable': true,
       },
       {
-        'name': 'Appetizer Platter',
-        'description': 'Chef\'s selection of seasonal appetizers',
-        'points': 300,
-        'type': 'food',
+        'title': 'Happy Hour Special',
+        'description': 'Buy one get one free on selected drinks',
+        'points': (bar['points'] * 0.8).round(),
+        'validUntil': DateTime.now().add(const Duration(days: 30)),
+        'isAvailable': true,
       },
       {
-        'name': 'VIP Experience',
-        'description': 'Priority seating and personalized service',
-        'points': 600,
-        'type': 'experience',
+        'title': 'VIP Experience',
+        'description': 'Reserved seating + premium tasting menu',
+        'points': bar['points'] * 2,
+        'validUntil': DateTime.now().add(const Duration(days: 30)),
+        'isAvailable': false,
       },
     ];
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: CustomScrollView(
-        slivers: [
-          // 顶部图片和返回按钮
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    bar['image'],
-                    fit: BoxFit.cover,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            _buildAppBar(context),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBarInfo(context),
+                    const SizedBox(height: 32),
+                    Text(
+                      'Available Rewards',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    ...coupons.map((coupon) => _buildCouponCard(context, coupon)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 200,
+      pinned: true,
+      backgroundColor: AppColors.backgroundLight,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: bar['name'] == 'Sage'
+                  ? [
+                      const Color(0xFF8BC34A).withOpacity(0.3),
+                      const Color(0xFF4CAF50).withOpacity(0.3),
+                    ]
+                  : bar['name'] == 'Cloud 9'
+                      ? [
+                          const Color(0xFF90CAF9).withOpacity(0.3),
+                          const Color(0xFF2196F3).withOpacity(0.3),
+                        ]
+                      : [
+                          const Color(0xFFFFB74D).withOpacity(0.3),
+                          const Color(0xFFFF9800).withOpacity(0.3),
                         ],
-                      ),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _DecorationPainter(
+                    color: bar['name'] == 'Sage'
+                        ? const Color(0xFF4CAF50).withOpacity(0.1)
+                        : bar['name'] == 'Cloud 9'
+                            ? const Color(0xFF2196F3).withOpacity(0.1)
+                            : const Color(0xFFFF9800).withOpacity(0.1),
+                  ),
+                ),
+              ),
+              Center(
+                child: ElegantIcon(
+                  type: bar['name'] == 'Sage'
+                      ? 'bar_elegant'
+                      : bar['name'] == 'Cloud 9'
+                          ? 'bar_modern'
+                          : 'bar_cozy',
+                  size: 100,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBarInfo(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              bar['name'],
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.successGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.star,
+                    color: AppColors.successGreen,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    bar['rating'].toString(),
+                    style: TextStyle(
+                      color: AppColors.successGreen,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
             ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          bar['description'],
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Icon(
+              AppIcons.mapPin,
+              color: AppColors.textLight,
+              size: 16,
             ),
-          ),
-          // 内容
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 酒吧信息
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            bar['name'],
-                            style: Theme.of(context).textTheme.headlineLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                AppIcons.mapPin,
-                                color: AppColors.textLight,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                bar['distance'],
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.successGreen.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              AppIcons.star,
-                              color: AppColors.successGreen,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              bar['rating'].toString(),
-                              style: TextStyle(
-                                color: AppColors.successGreen,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  // 描述
-                  Text(
-                    bar['description'],
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 32),
-                  // 可兑换项目
-                  Text(
-                    'Redeemable Items',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
-                  ...redeemableItems.map((item) => _buildRedeemableItem(context, item)),
-                ],
-              ),
+            const SizedBox(width: 4),
+            Text(
+              bar['distance'],
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 16),
+            Icon(
+              AppIcons.wine,
+              color: AppColors.textLight,
+              size: 16,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              bar['signature'],
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildRedeemableItem(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildCouponCard(BuildContext context, Map<String, dynamic> coupon) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
             color: AppColors.shadowColor.withOpacity(0.1),
@@ -173,108 +217,131 @@ class BarDetailPage extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primaryPurple.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: coupon['isAvailable']
+                    ? AppColors.purpleToPinkGradient
+                    : [Colors.grey.shade300, Colors.grey.shade400],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
             ),
-            child: Icon(
-              _getItemIcon(item['type']),
-              color: AppColors.primaryPurple,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  item['name'],
-                  style: Theme.of(context).textTheme.titleMedium,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      coupon['title'],
+                      style: TextStyle(
+                        color: AppColors.textWhite,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Valid until ${_formatDate(coupon['validUntil'])}',
+                      style: TextStyle(
+                        color: AppColors.textWhite.withOpacity(0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  item['description'],
-                  style: Theme.of(context).textTheme.bodySmall,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.textWhite.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${coupon['points']} points',
+                    style: TextStyle(
+                      color: AppColors.textWhite,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${item['points']} pts',
-                style: TextStyle(
-                  color: AppColors.primaryPurple,
-                  fontWeight: FontWeight.bold,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  coupon['description'],
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
-              ),
-              const SizedBox(height: 4),
-              TextButton(
-                onPressed: () {
-                  _showRedeemDialog(context, item);
-                },
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: coupon['isAvailable']
+                        ? () {
+                            _showRedeemDialog(context, coupon);
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: coupon['isAvailable']
+                          ? AppColors.primaryPurple
+                          : Colors.grey.shade300,
+                      foregroundColor: AppColors.textWhite,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      coupon['isAvailable'] ? 'Redeem Now' : 'Not Available',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  backgroundColor: AppColors.primaryPurple.withOpacity(0.1),
                 ),
-                child: Text(
-                  'Redeem',
-                  style: TextStyle(
-                    color: AppColors.primaryPurple,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     ).animate()
       .fadeIn(duration: const Duration(milliseconds: 300))
-      .slideX(begin: 0.2, end: 0);
+      .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
   }
 
-  IconData _getItemIcon(String type) {
-    switch (type) {
-      case 'drink':
-        return AppIcons.wine;
-      case 'food':
-        return Icons.restaurant;
-      case 'experience':
-        return Icons.star;
-      default:
-        return Icons.redeem;
-    }
-  }
-
-  void _showRedeemDialog(BuildContext context, Map<String, dynamic> item) {
+  void _showRedeemDialog(BuildContext context, Map<String, dynamic> coupon) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Redeem ${item['name']}'),
+        title: const Text('Redeem Reward'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to redeem this item for ${item['points']} points?'),
-            const SizedBox(height: 16),
+            Text('Are you sure you want to redeem:'),
+            const SizedBox(height: 8),
             Text(
-              'Show this screen to the staff to claim your reward.',
-              style: TextStyle(
-                color: AppColors.textLight,
-                fontSize: 12,
+              coupon['title'],
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
               ),
             ),
+            Text('for ${coupon['points']} points?'),
           ],
         ),
         actions: [
@@ -284,8 +351,9 @@ class BarDetailPage extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Implement redemption logic
+              // TODO: Implement reward redemption
               Navigator.pop(context);
+              _showConfirmationDialog(context, coupon);
             },
             child: const Text('Confirm'),
           ),
@@ -293,4 +361,100 @@ class BarDetailPage extends ConsumerWidget {
       ),
     );
   }
+
+  void _showConfirmationDialog(BuildContext context, Map<String, dynamic> coupon) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Success!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.green,
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'You have successfully redeemed:\n${coupon['title']}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Show this screen to the staff to claim your reward.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  }
+}
+
+class _DecorationPainter extends CustomPainter {
+  final Color color;
+
+  _DecorationPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    final path = Path();
+    
+    const hexSize = 30.0;
+    const rows = 6;
+    const cols = 8;
+    
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        final xOffset = col * hexSize * 1.5;
+        final yOffset = row * hexSize * math.sqrt(3) + 
+            (col % 2) * hexSize * math.sqrt(3) / 2;
+        
+        final hexPath = Path();
+        for (var i = 0; i < 6; i++) {
+          final angle = i * math.pi / 3;
+          final point = Offset(
+            xOffset + hexSize * math.cos(angle),
+            yOffset + hexSize * math.sin(angle),
+          );
+          
+          if (i == 0) {
+            hexPath.moveTo(point.dx, point.dy);
+          } else {
+            hexPath.lineTo(point.dx, point.dy);
+          }
+        }
+        hexPath.close();
+        path.addPath(hexPath, Offset.zero);
+      }
+    }
+    
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

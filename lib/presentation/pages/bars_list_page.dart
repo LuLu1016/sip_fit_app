@@ -5,6 +5,7 @@ import 'package:sip_fit/core/constants/app_icons.dart';
 import 'package:sip_fit/core/widgets/gradient_container.dart';
 import 'package:sip_fit/core/widgets/elegant_icon.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:sip_fit/presentation/pages/bar_detail_page.dart';
 import 'dart:math' as math;
 
 class BarsListPage extends ConsumerWidget {
@@ -16,51 +17,54 @@ class BarsListPage extends ConsumerWidget {
     const totalPoints = 1250;
     final bars = [
       {
-        'name': 'Sage',
-        'description': 'Botanical cocktails & modern cuisine',
-        'image': 'assets/images/sage.jpg',
-        'rating': 4.8,
-        'distance': '0.8 km',
-        'signature': 'Botanical Garden',
-        'points': 500,
-      },
-      {
-        'name': 'Cloud 9',
-        'description': 'Rooftop bar with city views',
-        'image': 'assets/images/cloud9.jpg',
+        'name': 'Neon Nights',
+        'description': 'Modern cocktail lounge',
         'rating': 4.6,
-        'distance': '1.2 km',
-        'signature': 'Lavender Fizz',
-        'points': 450,
+        'distance': '0.7 miles',
+        'signature': 'Recovery Spritz',
+        'points': 600,
+        'special': 'Happy hour special',
       },
       {
-        'name': 'The Nest',
-        'description': 'Cozy speakeasy with craft cocktails',
-        'image': 'assets/images/nest.jpg',
+        'name': 'Craft & Kettlebells',
+        'description': 'Fitness-focused gastropub',
+        'rating': 4.9,
+        'distance': '1.2 miles',
+        'signature': 'Post-Workout IPA',
+        'points': 500,
+        'special': 'Free appetizer included',
+      },
+      {
+        'name': 'The Rooftop',
+        'description': 'Skyline views & craft cocktails',
         'rating': 4.7,
-        'distance': '1.5 km',
-        'signature': 'Cucumber Gin Spritz',
-        'points': 400,
+        'distance': '0.9 miles',
+        'signature': 'Sunset Spritz',
+        'points': 450,
+        'special': 'Group discount available',
       },
     ];
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(context, totalPoints),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildPointsSummary(context, totalPoints),
-                    const SizedBox(height: 24),
-                    _buildBarsList(context, bars),
-                  ],
-                ),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: _buildHeader(context, totalPoints),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildPointsSummary(context, totalPoints),
+                  const SizedBox(height: 24),
+                  _buildBarsList(context, bars),
+                  const SizedBox(height: 24),
+                  _buildSquadGoals(context),
+                  // Add extra padding at the bottom to ensure content is not covered by navigation bar
+                  const SizedBox(height: 32),
+                ]),
               ),
             ),
           ],
@@ -204,13 +208,17 @@ class BarsListPage extends ConsumerWidget {
   Widget _buildBarsList(BuildContext context, List<Map<String, dynamic>> bars) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'Recommended Bars',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
-        ...bars.map((bar) => _buildBarCard(context, bar)),
+        ...bars.map((bar) => Padding(
+          padding: EdgeInsets.only(bottom: bar == bars.last ? 0 : 16),
+          child: _buildBarCard(context, bar),
+        )),
       ],
     ).animate()
       .fadeIn(duration: const Duration(milliseconds: 600))
@@ -219,97 +227,99 @@ class BarsListPage extends ConsumerWidget {
 
   Widget _buildBarCard(BuildContext context, Map<String, dynamic> bar) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.zero,
       decoration: BoxDecoration(
         color: AppColors.backgroundCard,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.shadowColor.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Container(
-            height: 160,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BarDetailPage(bar: bar),
               ),
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryPurple.withOpacity(0.1),
-                  AppColors.primaryPink.withOpacity(0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Stack(
-              children: [
-                // 背景渐变
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: bar['name'] == 'Sage'
-                          ? [
-                              const Color(0xFF8BC34A).withOpacity(0.3),
-                              const Color(0xFF4CAF50).withOpacity(0.3),
-                            ]
-                          : bar['name'] == 'Cloud 9'
-                              ? [
-                                  const Color(0xFF90CAF9).withOpacity(0.3),
-                                  const Color(0xFF2196F3).withOpacity(0.3),
-                                ]
-                              : [
-                                  const Color(0xFFFFB74D).withOpacity(0.3),
-                                  const Color(0xFFFF9800).withOpacity(0.3),
-                                ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                ),
-                // 装饰图案
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _DecorationPainter(
-                      color: bar['name'] == 'Sage'
-                          ? const Color(0xFF4CAF50).withOpacity(0.1)
-                          : bar['name'] == 'Cloud 9'
-                              ? const Color(0xFF2196F3).withOpacity(0.1)
-                              : const Color(0xFFFF9800).withOpacity(0.1),
-                    ),
-                  ),
-                ),
-                // 中心图标
-                Center(
-                  child: ElegantIcon(
-                    type: bar['name'] == 'Sage'
-                        ? 'bar_elegant'
-                        : bar['name'] == 'Cloud 9'
-                            ? 'bar_modern'
-                            : 'bar_cozy',
-                    size: 80,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      bar['name'],
-                      style: Theme.of(context).textTheme.titleLarge,
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundLight,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: ElegantIcon(
+                          type: bar['name'] == 'Sage'
+                              ? 'bar_elegant'
+                              : bar['name'] == 'Cloud 9'
+                                  ? 'bar_modern'
+                                  : 'bar_cozy',
+                          size: 32,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            bar['name'],
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                AppIcons.mapPin,
+                                color: AppColors.textLight,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                bar['distance'],
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Icon(
+                                AppIcons.star,
+                                color: AppColors.textLight,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                bar['rating'].toString(),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -317,90 +327,167 @@ class BarsListPage extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.successGreen.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.primaryPurple.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            AppIcons.star,
-                            color: AppColors.successGreen,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            bar['rating'].toString(),
-                            style: TextStyle(
-                              color: AppColors.successGreen,
-                              fontWeight: FontWeight.bold,
+                      child: Text(
+                        '${bar['points']} points',
+                        style: TextStyle(
+                          color: AppColors.primaryPurple,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.backgroundLight,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppIcons.wine,
+                        color: AppColors.textLight,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              bar['signature'],
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                            Text(
+                              bar['special'],
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textLight,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  bar['description'],
-                  style: Theme.of(context).textTheme.bodyMedium,
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Icon(
-                      AppIcons.mapPin,
-                      color: AppColors.textLight,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      bar['distance'],
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      AppIcons.wine,
-                      color: AppColors.textLight,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      bar['signature'],
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${bar['points']} points',
-                      style: TextStyle(
-                        color: AppColors.primaryPurple,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BarDetailPage(bar: bar),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        // TODO: Navigate to bar detail page
-                      },
-                      child: const Text('View Details'),
-                    ),
-                  ],
+                    child: const Text('Redeem Now'),
+                  ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     ).animate()
       .fadeIn(duration: const Duration(milliseconds: 300))
       .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
   }
 }
+
+  Widget _buildSquadGoals(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFF3E0),
+            const Color(0xFFFFE0B2),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    AppIcons.user,
+                    color: const Color(0xFFFF9800),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Squad Goals',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFFE65100),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Tonight',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: const Color(0xFFE65100),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Sarah, Mike & Alex earned group discount at The Rooftop!',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: const Color(0xFFE65100),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                // TODO: Implement group reservation
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF5722),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Join Group Reservation'),
+            ),
+          ),
+        ],
+      ),
+    ).animate()
+      .fadeIn(duration: const Duration(milliseconds: 300))
+      .slideY(begin: 0.2, end: 0);
+  }
 
 class _DecorationPainter extends CustomPainter {
   final Color color;

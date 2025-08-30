@@ -39,47 +39,53 @@ class DrinkCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.shadowColor.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryPurple.withOpacity(0.1),
-                  AppColors.primaryPink.withOpacity(0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primaryPurple.withOpacity(0.05),
+                    AppColors.primaryPink.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ElegantIcon(
-                  type: _getDrinkType(name),
-                  size: 48,
-                ),
-                const Spacer(),
-                Text(
-                  name,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElegantIcon(
+                    type: _getDrinkType(name),
+                    size: 32,
+                  ),
+                  const Spacer(),
+                  Text(
+                    name,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -194,26 +194,29 @@ class _MySippyPageState extends ConsumerState<MySippyPage> {
   Widget _buildRecommendations(List<String> drinks) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'Recommended for You',
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 1.5,
-          ),
-          itemCount: drinks.length,
-          itemBuilder: (context, index) {
-            return DrinkCard(
-              name: drinks[index],
-              type: _getDrinkType(drinks[index]),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final cardWidth = (constraints.maxWidth - 16) / 2;
+            final cardHeight = cardWidth / 1.2; // Adjust aspect ratio
+            
+            return Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              children: drinks.map((drink) => SizedBox(
+                width: cardWidth,
+                height: cardHeight,
+                child: DrinkCard(
+                  name: drink,
+                  type: _getDrinkType(drink),
+                ),
+              )).toList(),
             );
           },
         ),
